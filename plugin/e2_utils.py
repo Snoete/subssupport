@@ -36,9 +36,9 @@ from Components.config import ConfigText, ConfigSubsection, ConfigDirectory, \
 from Screens.MessageBox import MessageBox
 from Screens.Screen import Screen
 from Screens.VirtualKeyBoard import VirtualKeyBoard
-from Tools.Directories import fileExists, SCOPE_SKIN, resolveFilename
+from Tools.Directories import fileExists, SCOPE_SKIN, SCOPE_CURRENT_SKIN, resolveFilename
+from Tools.LoadPixmap import LoadPixmap
 
-from .compat import LanguageEntryComponent
 from enigma import addFont, ePicLoad, eEnv, getDesktop
 from .utils import toString
 
@@ -56,6 +56,16 @@ def isFullHD():
 def isHD():
     desktopSize = getDesktopSize()
     return desktopSize[0] >= 1280 and desktopSize[0] < 1920
+
+
+def LanguageEntryComponent(file, name, index):
+    png = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, 'countries/' + index + '.png'))
+    if png is None:
+        png = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, 'countries/' + file + '.png'))
+        if png is None:
+            png = LoadPixmap(resolveFilename(SCOPE_CURRENT_SKIN, 'countries/missing.png'))
+    res = (index, name, png)
+    return res
 
 
 class MyConfigList(ConfigList):

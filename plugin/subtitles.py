@@ -22,9 +22,6 @@ from datetime import datetime
 import json
 import os
 import re
-import sys
-from threading import Thread
-import traceback
 from twisted.internet.defer import Deferred
 from twisted.web import client
 
@@ -57,7 +54,8 @@ from Tools.Directories import SCOPE_CURRENT_SKIN, SCOPE_SKIN, resolveFilename, \
 from Tools.ISO639 import LanguageCodes
 from Tools.LoadPixmap import LoadPixmap
 
-from .compat import eConnectCallback, FileList
+from Components.FileList import FileList
+#from .compat import FileList
 from .e2_utils import messageCB, E2SettingsProvider, MyLanguageSelection, unrar, \
     ConfigFinalText, Captcha, DelayMessageBox, MyConfigList, getFps, fps_float, \
     getFonts, BaseMenuScreen, isFullHD, isHD, getDesktopSize
@@ -761,9 +759,8 @@ class SubsSupport(SubsSupportEmbedded):
         self.__forceDefaultPath = forceDefaultPath
         self.__showGUIInfoMessages = showGUIInfoMessages
         self.__checkTimer = eTimer()
-        self.__checkTimer_conn = None
         self.__starTimer = eTimer()
-        self.__startTimer_conn = eConnectCallback(self.__starTimer.timeout, self.__updateSubs)
+        self.__starTimer.callback.append(self.__updateSubs)
         try:
             from Screens.InfoBar import InfoBar
             InfoBar.instance.subtitle_window.hide()
@@ -999,11 +996,9 @@ class SubsSupport(SubsSupportEmbedded):
             self.__subsScreen = None
 
         self.__starTimer.stop()
-        del self.__startTimer_conn
         del self.__starTimer
 
         self.__checkTimer.stop()
-        del self.__checkTimer_conn
         del self.__checkTimer
 
         print('[SubsSupport] closing subtitleDisplay')
@@ -1115,8 +1110,7 @@ class SubsSupport(SubsSupportEmbedded):
         self.__starTimer.stop()
 
         if self.__working:
-            del self.__checkTimer_conn
-            self.__checkTimer_conn = eConnectCallback(self.__checkTimer.timeout, checkWorking)
+            self.__checkTimer.callback.append(checkWorking)
             self.__checkTimer.start(200, True)
         else:
             fnc()
@@ -1507,15 +1501,13 @@ class SubsEngine(object):
         self.refreshTimer.callback.append(self.play)
         self.refreshTimerDelay = 1000
         self.hideTimer = eTimer()
-        self.hideTimer_conn_array = []
-        self.hideTimer_conn_array.append(eConnectCallback(self.hideTimer.timeout, self.checkHideSub))
-        self.hideTimer_conn_array.append(eConnectCallback(self.hideTimer.timeout, self.incSubPosition))
-        self.hideTimer_conn_array.append(eConnectCallback(self.hideTimer.timeout, self.doPlay))
+        self.hideTimer.callback.append(self.checkHideSub)
+        self.hideTimer.callback.append(self.incSubPosition)
+        self.hideTimer.callback.append(self.doPlay)
         self.getPlayPtsTimer = eTimer()
-        self.getPlayPtsTimer_conn_array = []
-        self.getPlayPtsTimer_conn_array.append(eConnectCallback(self.getPlayPtsTimer.timeout, self.getPts))
-        self.getPlayPtsTimer_conn_array.append(eConnectCallback(self.getPlayPtsTimer.timeout, self.validPts))
-        self.getPlayPtsTimer_conn_array.append(eConnectCallback(self.getPlayPtsTimer.timeout, self.callbackPts))
+        self.getPlayPtsTimer.callback.append(self.getPts)
+        self.getPlayPtsTimer.callback.append(self.validPts)
+        self.getPlayPtsTimer.callback.append(self.callbackPts)
         self.getPlayPtsTimerDelay = 200
         self.resume = self.play
         self.addNotifiers()
@@ -1805,11 +1797,9 @@ class SubsEngine(object):
             self.hideTimer.stop()
 
     def exit(self):
-        del self.hideTimer_conn_array[:]
         del self.hideTimer
         self.refreshTimer.callback.remove(self.play)
         del self.refreshTimer
-        del self.getPlayPtsTimer_conn_array[:]
         del self.getPlayPtsTimer
         del self.onSubsDelayChanged[:]
         del self.onSubsFpsChanged[:]
@@ -2501,7 +2491,8 @@ class SubsChooser(Screen):
             self.videoPath = None
         videoName = ref and os.path.split(ref.getPath())[1]
         self["filename"] = StaticText(videoName)
-        self["file_list"] = SubFileList(defaultDir)
+        self["file_list"] = FileList(defaultDir)
+#        self["file_list"] = SubFileList(defaultDir)
         self["menu_list"] = SubsChooserMenuList(self.embeddedList, searchSupport, historySupport)
         self["actions"] = ActionMap(["OkCancelActions", "ColorActions", "DirectionActions"],
             {
@@ -2540,7 +2531,8 @@ class SubsChooser(Screen):
         if self['file_list'].canDescent():
             self['file_list'].descent()
         else:
-            filePath = os.path.join(self['file_list'].current_directory, self['file_list'].getFilename())
+            filePath = self['file_list'].getPath()
+#            filePath = os.path.join(self['file_list'].current_directory, self['file_list'].getFilename())
             self.close(filePath, False)
 
     def checkEmbeddedSubsSelection(self, embeddedSubtitle=None):

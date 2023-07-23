@@ -12,12 +12,12 @@ from Components.Label import Label
 from Components.config import ConfigSubsection, getConfigListEntry
 from Components.config import config, ConfigOnOff
 from Screens.HelpMenu import HelpableScreen
-from .compat import MessageBox
+from Screens.MessageBox import MessageBox
 from Screens.MinuteInput import MinuteInput
 from Screens.Screen import Screen
 
 from .e2_utils import getFps, fps_float, BaseMenuScreen, isFullHD, getDesktopSize
-from enigma import eTimer, getDesktop
+from enigma import eTimer
 from .parsers.baseparser import ParseError
 from .process import LoadError, DecodeError, ParserNotFoundError
 from skin import parseColor
