@@ -24,7 +24,6 @@ from twisted.web.client import downloadPage
 import xml.etree.cElementTree
 
 from Components.Label import Label
-from Components.AVSwitch import AVSwitch
 from Components.ActionMap import ActionMap
 from Components.ConfigList import ConfigList
 from Components.Console import Console
@@ -39,12 +38,9 @@ from Screens.Screen import Screen
 from Screens.VirtualKeyBoard import VirtualKeyBoard
 from Tools.Directories import fileExists, SCOPE_SKIN, resolveFilename
 
-from .compat import LanguageEntryComponent, eConnectCallback
+from .compat import LanguageEntryComponent
 from enigma import addFont, ePicLoad, eEnv, getDesktop
 from .utils import toString
-
-
-import six
 
 
 def getDesktopSize():
@@ -216,8 +212,7 @@ class Captcha(object):
     def __init__(self, session, captchaCB, imagePath, destPath='/tmp/captcha.png'):
         self.session = session
         self.captchaCB = captchaCB
-        self.destPath = destPath.encode('utf-8') if six.PY2 else destPath
-        imagePath = imagePath.encode('utf-8') if six.PY2 else imagePath
+        self.destPath = destPath
 
         if os.path.isfile(imagePath):
             self.openCaptchaDialog(imagePath)
@@ -253,15 +248,13 @@ class CaptchaDialog(VirtualKeyBoard):
     def __init__(self, session, captcha_file):
         VirtualKeyBoard.__init__(self, session, _('Type text of picture'))
         self["captcha"] = Pixmap()
-        self.Scale = AVSwitch().getFramebufferScale()
         self.picPath = captcha_file
         self.picLoad = ePicLoad()
-        self.picLoad_conn = eConnectCallback(self.picLoad.PictureData, self.decodePicture)
+        self.picLoad.PictureData.get().append(self.decodePicture)
         self.onLayoutFinish.append(self.showPicture)
-        self.onClose.append(self.__onClose)
 
     def showPicture(self):
-        self.picLoad.setPara([self["captcha"].instance.size().width(), self["captcha"].instance.size().height(), self.Scale[0], self.Scale[1], 0, 1, "#002C2C39"])
+        self.picLoad.setPara([self["captcha"].instance.size().width(), self["captcha"].instance.size().height(), 1, 1, 0, 1, "#002C2C39"])
         self.picLoad.startDecode(self.picPath)
 
     def decodePicture(self, PicInfo=""):
@@ -270,13 +263,9 @@ class CaptchaDialog(VirtualKeyBoard):
 
     def showPic(self, picInfo=""):
         ptr = self.picLoad.getData()
-        if ptr != None:
+        if ptr is not None:
             self["captcha"].instance.setPixmap(ptr.__deref__())
             self["captcha"].show()
-
-    def __onClose(self):
-        del self.picLoad_conn
-        del self.picLoad
 
 
 class DelayMessageBox(MessageBox):
@@ -286,7 +275,7 @@ class DelayMessageBox(MessageBox):
 
 
 def messageCB(text):
-    print(text.encode('utf-8') if six.PY2 else text)
+    print(text)
 
 
 class E2SettingsProvider(dict):
@@ -299,7 +288,7 @@ class E2SettingsProvider(dict):
         self.createSettings()
 
     def __repr__(self):
-        return '[E2SettingsProvider-%s]' % self.__providerName.encode('utf-8') if six.PY2 else self.__providerName
+        return '[E2SettingsProvider-%s]' % self.__providerName
 
     def __setitem__(self, key, value):
         self.setSetting(key, value)
@@ -327,10 +316,8 @@ class E2SettingsProvider(dict):
         return dict((key, self.getConfigEntry(key).value) for key in self.__defaults.keys())
 
     def createSettings(self):
-        for name, value in six.iteritems(self.__defaults):
-            type = value['type']
-            default = value['default']
-            self.createConfigEntry(name, type, default)
+        for name, value in self.__defaults.items():
+            self.createConfigEntry(name, value['type'], value['default'])
 
     def createConfigEntry(self, name, type, default, *args, **kwargs):
         if type == 'text':

@@ -1504,7 +1504,7 @@ class SubsEngine(object):
         self.__callbackPts = None
         self.preDoPlay = [self.updateSubPosition]
         self.refreshTimer = eTimer()
-        self.refreshTimer_conn = eConnectCallback(self.refreshTimer.timeout, self.play)
+        self.refreshTimer.callback.append(self.play)
         self.refreshTimerDelay = 1000
         self.hideTimer = eTimer()
         self.hideTimer_conn_array = []
@@ -1807,7 +1807,7 @@ class SubsEngine(object):
     def exit(self):
         del self.hideTimer_conn_array[:]
         del self.hideTimer
-        del self.refreshTimer_conn
+        self.refreshTimer.callback.remove(self.play)
         del self.refreshTimer
         del self.getPlayPtsTimer_conn_array[:]
         del self.getPlayPtsTimer
@@ -2313,7 +2313,7 @@ class SubFileList(FileList):
         directories = []
         files = []
 
-        if directory is None and self.showMountpoints: # present available mountpoints
+        if directory is None and self.showMountpoints:  # present available mountpoints
             for p in harddiskmanager.getMountedPartitions():
                 path = os.path.join(p.mountpoint, "")
                 if path not in self.inhibitMounts and not self.inParentDirs(path, self.inhibitDirs):
@@ -2985,9 +2985,9 @@ class SubsSearchProcess(object):
         self.data = ""
         self.__stopping = False
         self.appContainer = eConsoleAppContainer()
-        self.stdoutAvail_conn = eConnectCallback(self.appContainer.stdoutAvail, self.dataOutCB)
-        self.stderrAvail_conn = eConnectCallback(self.appContainer.stderrAvail, self.dataErrCB)
-        self.appContainer_conn = eConnectCallback(self.appContainer.appClosed, self.finishedCB)
+        self.appContainer.stdoutAvail.append(self.dataOutCB)
+        self.appContainer.stderrAvail.append(self.dataErrCB)
+        self.appContainer.appClosed.append(self.finishedCB)
 
     def recieveMessages(self, data):
         def getMessage(data):
@@ -3069,7 +3069,6 @@ class SubsSearchProcess(object):
         def check_stopped():
             if not self.appContainer.running():
                 self.stopTimer.stop()
-                del self.stopTimer_conn
                 del self.stopTimer
                 del self.__i
                 return
@@ -3079,7 +3078,6 @@ class SubsSearchProcess(object):
                 self.appContainer.kill()
             elif self.__i == 1:
                 self.stopTimer.stop()
-                del self.stopTimer_conn
                 del self.stopTimer
                 raise Exception("cannot kill process")
 
@@ -3094,7 +3092,7 @@ class SubsSearchProcess(object):
             self.log.debug('1. sending SIGINT')
             self.appContainer.sendCtrlC()
             self.stopTimer = eTimer()
-            self.stopTimer_conn = eConnectCallback(self.stopTimer.timeout, check_stopped)
+            self.stopTimer.callback.append(check_stopped)
             self.stopTimer.start(2000, False)
         else:
             self.log.debug('process is already stopped')
@@ -3440,7 +3438,7 @@ class Message(object):
         self.infowidget = infowidget
         self.errorwidget = errorwidget
         self.timer = eTimer()
-        self.timer_conn = eConnectCallback(self.timer.timeout, self.hide)
+        self.timer.callback.append(self.hide)
 
     def info(self, text, timeout=None):
         self.timer.stop()
@@ -3465,8 +3463,7 @@ class Message(object):
 
     def exit(self):
         self.hide()
-        del self.timer_conn
-        del self.timer
+        self.timer.callback.remove(self.hide)
 
 
 class SearchParamsHelper(object):

@@ -12,7 +12,7 @@ from Components.Label import Label
 from Components.config import ConfigSubsection, getConfigListEntry
 from Components.config import config, ConfigOnOff
 from Screens.HelpMenu import HelpableScreen
-from .compat import MessageBox, eConnectCallback
+from .compat import MessageBox
 from Screens.MinuteInput import MinuteInput
 from Screens.Screen import Screen
 
@@ -122,12 +122,12 @@ class SubsControllerDVB(Screen, HelpableScreen):
         else:
             self.providedSubtitlesFps = None
         self.hideTimer = eTimer()
-        self.hideTimer_conn = eConnectCallback(self.hideTimer.timeout, self.hideStatus)
+        self.hideTimer.callback.append(self.hideStatus)
         self.hideTimerDelay = 5000
         self.eventTimer = eTimer()
-        self.eventTimer_conn = eConnectCallback(self.eventTimer.timeout, self.updateEventStatus)
+        self.eventTimer.callback.append(self.updateEventStatus)
         self.subtitlesTimer = eTimer()
-        self.subtitlesTimer_conn = eConnectCallback(self.subtitlesTimer.timeout, self.updateSubtitlesTime)
+        self.subtitlesTimer.callback.append(self.updateSubtitlesTime)
         self.subtitlesTimerStep = 500
         self._baseTime = 0
         self._accTime = 0
@@ -408,14 +408,11 @@ class SubsControllerDVB(Screen, HelpableScreen):
 
     def delTimers(self):
         self.hideTimer.stop()
-        del self.hideTimer_conn
-        del self.hideTimer
+        self.hideTimer.callback.remove(self.hideTimerCallback)
         self.eventTimer.stop()
-        del self.eventTimer_conn
-        del self.eventTimer
+        self.eventTimer.callback.remove(self.updateEventStatus)
         self.subtitlesTimer.stop()
-        del self.subtitlesTimer_conn
-        del self.subtitlesTimer
+        self.subtitlesTimer.callback.remove(self.updateSubtitlesTime)
 
 
 class SubsEngineDVB(object):
@@ -428,9 +425,9 @@ class SubsEngineDVB(object):
         self.subsList = None
         self.paused = True
         self.waitTimer = eTimer()
-        self.waitTimer_conn = eConnectCallback(self.waitTimer.timeout, self.doWait)
+        self.waitTimer.callback.append(self.doWait)
         self.hideTimer = eTimer()
-        self.hideTimer_conn = eConnectCallback(self.hideTimer.timeout, self.hideTimerCallback)
+        self.hideTimer.callback.append(self.hideTimerCallback)
         self.onRenderSub = []
         self.onHideSub = []
         self.onPositionUpdate = []
@@ -618,8 +615,6 @@ class SubsEngineDVB(object):
 
     def close(self):
         self.waitTimer.stop()
-        del self.waitTimer_conn
-        del self.waitTimer
+        self.waitTimer.callback.remove(self.doWait)
         self.hideTimer.stop()
-        del self.hideTimer_conn
-        del self.hideTimer
+        self.hideTimer.callback.remove(self.hideTimerCallback)

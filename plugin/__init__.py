@@ -7,25 +7,23 @@ __copyright__ = 'Copyright (c) 2014 mx3L'
 __license__ = "GPL-v2"
 __version__ = "1.5.7"
 
-import gettext
-import os
+from gettext import bindtextdomain, dgettext, gettext, textdomain
+from os.path import dirname, join
 
 from Components.Language import language
 from Tools.Directories import resolveFilename, SCOPE_LANGUAGE
 
 
 def localeInit():
-    lang = language.getLanguage()
-    os.environ["LANGUAGE"] = lang[:2]
-    gettext.bindtextdomain("enigma2", resolveFilename(SCOPE_LANGUAGE))
-    gettext.textdomain("enigma2")
-    gettext.bindtextdomain("SubsSupport", os.path.join(os.path.dirname(__file__), 'locale'))
+    bindtextdomain("enigma2", resolveFilename(SCOPE_LANGUAGE))
+    textdomain("enigma2")
+    bindtextdomain("SubsSupport", join(dirname(__file__), 'locale'))
 
 
 def _(txt):
-    t = gettext.dgettext("SubsSupport", txt)
+    t = dgettext("SubsSupport", txt)
     if t == txt:
-        t = gettext.gettext(txt)
+        t = gettext(txt)
     return t
 
 
