@@ -6,10 +6,10 @@ import difflib
 import os
 import re
 import string
+from urllib.request import FancyURLopener
+from urllib.parse import quote_plus, urlencode
+from html.parser import HTMLParser
 from .SubsceneUtilities import geturl, get_language_info
-from six.moves import html_parser
-from six.moves.urllib.request import FancyURLopener
-from six.moves.urllib.parse import quote_plus, urlencode
 
 from ..utilities import log
 
@@ -39,7 +39,7 @@ subscene_languages = {
 }
 
 
-def getSearchTitle(title, year=None): ## new Add
+def getSearchTitle(title, year=None):  # new Add
     url = 'https://subscene.com/subtitles/searchbytitle?query=%s&l=' % quote_plus(title)
     data = geturl(url)
     blocks = data.split('class="title"')
@@ -71,7 +71,7 @@ def getSearchTitle(title, year=None): ## new Add
 
 def find_movie(content, title, year):
     url_found = None
-    h = html_parser.HTMLParser()
+    h = HTMLParser()
     for matches in re.finditer(movie_season_pattern, content, re.IGNORECASE | re.DOTALL):
         found_title = matches.group('title')
         found_title = h.unescape(found_title)

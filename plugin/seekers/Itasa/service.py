@@ -3,9 +3,10 @@ from __future__ import absolute_import
 import os
 import re
 
+from urllib.request import build_opener, install_opener, urlopen, Request, HTTPCookieProcessor
+from urllib.parse import urlencode
+from http.cookiejar import CookieJar
 from ..seeker import SubtitlesDownloadError, SubtitlesErrors
-from six.moves import http_cookiejar
-from six.moves import urllib
 
 from ..utilities import log
 
@@ -37,12 +38,12 @@ subtitle_download_pattern = '<a href=\'http://www\.italiansubs\.net/(index\.php\
 def geturl(url):
     log(__name__, " Getting url: %s" % (url))
     try:
-        response = urllib.request.urlopen(url)
+        response = urlopen(url)
         content = response.read()
     except:
         log(__name__, " Failed to get url:%s" % (url))
         content = None
-    return(content)
+    return (content)
 
 
 def login(username, password):
@@ -58,13 +59,13 @@ def login(username, password):
                 return_value = match.group(1)
                 unique_name = match.group(2)
                 unique_value = match.group(3)
-                login_postdata = urllib.parse.urlencode({'username': username, 'passwd': password, 'remember': 'yes', 'Submit': 'Login', 'remember': 'yes', 'option': 'com_user', 'task': 'login', 'silent': 'true', 'return': return_value, unique_name: unique_value})
-                cj = http_cookiejar.CookieJar()
-                my_opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+                login_postdata = urlencode({'username': username, 'passwd': password, 'remember': 'yes', 'Submit': 'Login', 'remember': 'yes', 'option': 'com_user', 'task': 'login', 'silent': 'true', 'return': return_value, unique_name: unique_value})
+                cj = CookieJar()
+                my_opener = build_opener(HTTPCookieProcessor(cj))
                 my_opener.addheaders = [('Referer', main_url)]
-                urllib.request.install_opener(my_opener)
-                request = urllib.request.Request(main_url + 'index.php', login_postdata)
-                response = urllib.request.urlopen(request).read()
+                install_opener(my_opener)
+                request = Request(main_url + 'index.php', login_postdata)
+                response = urlopen(request).read()
                 match = re.search('logouticon.png', response, re.IGNORECASE | re.DOTALL)
                 if match:
                     return 1
@@ -74,7 +75,7 @@ def login(username, password):
         return 0
 
 
-def search_subtitles(file_original_path, title, tvshow, year, season, episode, set_temp, rar, lang1, lang2, lang3, stack): #standard input
+def search_subtitles(file_original_path, title, tvshow, year, season, episode, set_temp, rar, lang1, lang2, lang3, stack):  # standard input
     subtitles_list = []
     msg = ""
     if len(tvshow) > 0:
@@ -121,10 +122,10 @@ def search_subtitles(file_original_path, title, tvshow, year, season, episode, s
                 msg = "Tv show '%s' not found" % tvshow
     else:
         msg = "Won't work, Itasa is only for tv shows."
-    return subtitles_list, "", msg #standard output
+    return subtitles_list, "", msg  # standard output
 
 
-def download_subtitles(subtitles_list, pos, zip_subs, tmp_sub_dir, sub_folder, session_id): #standard input
+def download_subtitles(subtitles_list, pos, zip_subs, tmp_sub_dir, sub_folder, session_id):  # standard input
     username = settings_provider.getSetting("ITuser")
     password = settings_provider.getSetting("ITpass")
     if username == "" or password == "":
@@ -147,8 +148,8 @@ def download_subtitles(subtitles_list, pos, zip_subs, tmp_sub_dir, sub_folder, s
                 elif header == 'PK':
                     local_tmp_file = os.path.join(tmp_sub_dir, "undertexter.zip")
                     packed = True
-                else: # never found/downloaded an unpacked subtitles file, but just to be sure ...
-                    local_tmp_file = os.path.join(tmp_sub_dir, "undertexter.srt") # assume unpacked subtitels file is an '.srt'
+                else:  # never found/downloaded an unpacked subtitles file, but just to be sure ...
+                    local_tmp_file = os.path.join(tmp_sub_dir, "undertexter.srt")  # assume unpacked subtitels file is an '.srt'
                     packed = False
                 subs_file = local_tmp_file
                 log(__name__, " Saving subtitles to '%s'" % (local_tmp_file))
@@ -158,6 +159,6 @@ def download_subtitles(subtitles_list, pos, zip_subs, tmp_sub_dir, sub_folder, s
                     local_file_handle.close()
                 except:
                     log(__name__, " Failed to save subtitles to '%s'" % (local_tmp_file))
-                return packed, language, subs_file #standard output
+                return packed, language, subs_file  # standard output
     log(__name__, " Login to Itasa failed. Check your username/password at the addon configuration.")
     raise SubtitlesDownloadError(SubtitlesErrors.INVALID_CREDENTIALS_ERROR, "provided invalid credentials")

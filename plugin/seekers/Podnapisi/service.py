@@ -2,15 +2,13 @@
 
 from __future__ import absolute_import
 import os
+from urllib.request import urlopen
 
 from .pn_utilities import PNServer, OpensubtitlesHash, \
     calculateSublightHash, __scriptid__
 from . import pn_utilities
 
 from ..utilities import log, languageTranslate, normalizeString
-
-
-from six.moves import urllib
 
 
 def Search(item):
@@ -79,7 +77,7 @@ def download_subtitles(subtitles_list, pos, zip_subs, tmp_sub_dir, sub_folder, s
     url = Download(params)
     if url != None:
         local_file = open(zip_subs, "w" + "b")
-        f = urllib.request.urlopen(url)
+        f = urlopen(url)
         local_file.write(f.read())
         local_file.close()
     language = params['language_name']

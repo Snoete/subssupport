@@ -105,7 +105,7 @@ class TestXBMCSubtitleProviderWithCredentials(TestXBMCSubtitleProvider):
 
     @classmethod
     def get_credentials(cls, filename):
-        config = configparser.RawConfigParser()
+        config = RawConfigParser()
         cfgpath = os.path.join(os.path.dirname(__file__), filename)
         try:
             config.read(cfgpath)
@@ -162,7 +162,7 @@ class TestTitulkycom(TestXBMCSubtitleProviderWithCredentials, unittest.TestCase)
         self.movie_list = []
         self.hash_list = []
         self.download_movie_list = []
-        self.download_tvshow_list = [] #[('Frasier','1','1')]
+        self.download_tvshow_list = []  # [('Frasier','1','1')]
         self.login_setting_key = 'Titulkyuser'
         self.password_setting_key = 'Titulkypass'
         self.provider = TitulkyComSeeker(self.tmp_path,
@@ -338,7 +338,8 @@ class TestItasa(TestXBMCSubtitleProviderWithCredentials, unittest.TestCase):
 
 from seekers.xbmc_subtitles import TitloviSeeker
 
-from six.moves import configparser
+from configparser import RawConfigParser
+
 from six.moves import range
 
 

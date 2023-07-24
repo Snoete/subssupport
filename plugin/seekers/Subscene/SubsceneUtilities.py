@@ -2,11 +2,8 @@
 from __future__ import absolute_import
 from __future__ import print_function
 import requests
-import re
-from ..utilities import log as _log
-
-from six.moves import urllib
 import six
+from ..utilities import log as _log
 
 
 ses = requests.Session()
@@ -93,7 +90,7 @@ def get_language_info(language):
 
 
 def log(module, msg):
-    _log(module, msg.encode('utf-8') if six.PY2 else msg)
+    _log(module, msg)
 
 
 def geturl(url1, headers=None, params=None):

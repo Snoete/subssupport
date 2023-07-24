@@ -22,6 +22,8 @@ from datetime import datetime
 import json
 import os
 import re
+from urllib.parse import quote, unquote
+
 from twisted.internet.defer import Deferred
 from twisted.web import client
 
@@ -76,10 +78,7 @@ from .utils import toString, SimpleLogger, toUnicode
 from . import _, __author__, __version__, __email__
 
 import six
-from six.moves.queue import Queue
 from six.moves import range
-from six.moves import urllib
-from six.moves.urllib.parse import quote
 
 try:
     from xml.etree.cElementTree import parse as parse_xml
@@ -92,11 +91,8 @@ try:
 except ImportError:
     QuickSubtitlesConfigMenu = None
 
-if six.PY3:
-    long = int
-
-
 # localization function
+
 
 def warningMessage(session, text):
     session.open(MessageBox, text, type=MessageBox.TYPE_WARNING, timeout=5)
@@ -1118,7 +1114,6 @@ class SubsSupport(SubsSupportEmbedded):
 
 ############ Methods triggered by videoEvents when SubsSupport is subclass of Screen ################
 
-
     def __serviceStarted(self):
         print('[SubsSupport] Service Started')
 
@@ -1141,14 +1136,13 @@ class SubsSupport(SubsSupportEmbedded):
         self.__isServiceSet = False
 
     def __seekableStatusChanged(self):
-        if not hasattr(self, 'seekstate'):
-            return
-        if self.seekstate == self.SEEK_STATE_PLAY:
-            self.pauseSubs()
-        elif self.seekstate == self.SEEK_STATE_PAUSE:
-            self.resumeSubs()
-        elif self.seekstate == self.SEEK_STATE_EOF:
-            self.resetSubs(True)
+        if hasattr(self, 'seekstate'):
+            if self.seekstate == self.SEEK_STATE_PLAY:
+                self.pauseSubs()
+            elif self.seekstate == self.SEEK_STATE_PAUSE:
+                self.resumeSubs()
+            elif self.seekstate == self.SEEK_STATE_EOF:
+                self.resetSubs(True)
 
 ########### Methods which extends InfobarSeek seek methods
 
@@ -1561,7 +1555,7 @@ class SubsEngine(object):
         if r[0]:
             self.__pts = None
         else:
-            self.__pts = long(r[1]) + self.playerDelay
+            self.__pts = int(r[1]) + self.playerDelay
 
     def validPts(self):
         pass
@@ -3916,7 +3910,7 @@ class SubsSearch(Screen):
         self.searchTitles = searchTitles
         self.filepath = filepath
         if self.filepath:
-            self.filepath = urllib.parse.unquote(self.filepath)
+            self.filepath = unquote(self.filepath)
         self.isLocalFilepath = filepath and os.path.isfile(filepath) or False
         self.searchTitle = searchSettings.title
         self.searchType = searchSettings.type

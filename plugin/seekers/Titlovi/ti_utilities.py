@@ -2,11 +2,9 @@
 from __future__ import absolute_import
 import base64
 import unicodedata
+from urllib.request import urlopen
 from xml.dom import minidom
 from ..utilities import languageTranslate, log
-
-import six
-from six.moves import urllib
 
 
 LANGUAGES = (
@@ -33,7 +31,7 @@ def languageTranslate(lang, lang_from, lang_to):
 
 def normalizeString(str):
     return unicodedata.normalize(
-        'NFKD', six.text_type(six.text_type(str, 'utf-8'))
+        'NFKD', str
     ).encode('ascii', 'ignore')
 
 
@@ -188,11 +186,11 @@ class OSDBServer:
             return subtitles_list
 
     def get_tvshow_info(self, subtitle):
-        if(len(subtitle.getElementsByTagName('TVShow')) != 0):
+        if (len(subtitle.getElementsByTagName('TVShow')) != 0):
             season = subtitle.getElementsByTagName("season")[0] \
                 .firstChild.data
             tvinfo = 'S%.2d' % int(season)
-            if(len(subtitle.getElementsByTagName('episode')) != 0):
+            if (len(subtitle.getElementsByTagName('episode')) != 0):
                 episode = subtitle.getElementsByTagName("episode")[0] \
                     .firstChild.data
                 tvinfo = '%sE%.2d' % (tvinfo, int(episode))
@@ -203,7 +201,7 @@ class OSDBServer:
         return tvinfo
 
     def fetch(self, url):
-        socket = urllib.request.urlopen(url)
+        socket = urlopen(url)
         result = socket.read()
         socket.close()
         xmldoc = minidom.parseString(result)

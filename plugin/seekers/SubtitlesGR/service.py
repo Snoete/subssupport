@@ -2,10 +2,9 @@
 from __future__ import absolute_import
 import os
 import re
-
+from urllib.request import urlopen, Request
+from urllib.parse import quote_plus
 from ..utilities import log
-
-from six.moves import urllib
 
 
 main_url = "http://www.subtitles.gr"
@@ -17,8 +16,8 @@ def get_url(url, referer=None):
         headers = {'User-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:6.0) Gecko/20100101 Firefox/6.0'}
     else:
         headers = {'User-agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:6.0) Gecko/20100101 Firefox/6.0', 'Referer': referer}
-    req = urllib.request.Request(url, None, headers)
-    response = urllib.request.urlopen(req)
+    req = Request(url, None, headers)
+    response = urlopen(req)
     content = response.read()
     response.close()
     content = content.replace('\n', '')
@@ -50,25 +49,25 @@ def get_rating(downloads):
     return rating
 
 
-def search_subtitles(file_original_path, title, tvshow, year, season, episode, set_temp, rar, lang1, lang2, lang3, stack): #standard input
+def search_subtitles(file_original_path, title, tvshow, year, season, episode, set_temp, rar, lang1, lang2, lang3, stack):  # standard input
     subtitles_list = []
     msg = ""
 
-    if len(tvshow) == 0 and year: # Movie
+    if len(tvshow) == 0 and year:  # Movie
         searchstring = "%s (%s)" % (title, year)
-    elif len(tvshow) > 0 and title == tvshow: # Movie not in Library
+    elif len(tvshow) > 0 and title == tvshow:  # Movie not in Library
         searchstring = "%s (%#02d%#02d)" % (tvshow, int(season), int(episode))
-    elif len(tvshow) > 0: # TVShow
+    elif len(tvshow) > 0:  # TVShow
         searchstring = "%s S%#02dE%#02d" % (tvshow, int(season), int(episode))
     else:
         searchstring = title
 
     log(__name__, "%s Search string = %s" % (debug_pretext, searchstring))
     get_subtitles_list(searchstring, "el", "Greek", subtitles_list)
-    return subtitles_list, "", msg #standard output
+    return subtitles_list, "", msg  # standard output
 
 
-def download_subtitles(subtitles_list, pos, zip_subs, tmp_sub_dir, sub_folder, session_id): #standard input
+def download_subtitles(subtitles_list, pos, zip_subs, tmp_sub_dir, sub_folder, session_id):  # standard input
     language = subtitles_list[pos]["language_name"]
     id = subtitles_list[pos]["id"]
     id = re.compile('(.+?.+?)/').findall(id)[-1]
@@ -76,12 +75,12 @@ def download_subtitles(subtitles_list, pos, zip_subs, tmp_sub_dir, sub_folder, s
 
     try:
         log(__name__, "%s Getting url: %s" % (debug_pretext, id))
-        response = urllib.request.urlopen(id)
+        response = urlopen(id)
         content = response.read()
         type = content[:4]
     except:
         log(__name__, "%s Failed to parse url:%s" % (debug_pretext, id))
-        return True, language, "" #standard output
+        return True, language, ""  # standard output
 
     if type == 'Rar!':
         local_tmp_file = os.path.join(tmp_sub_dir, "subtitlesgr.rar")
@@ -89,7 +88,7 @@ def download_subtitles(subtitles_list, pos, zip_subs, tmp_sub_dir, sub_folder, s
         local_tmp_file = os.path.join(tmp_sub_dir, "subtitlesgr.zip")
     else:
         log(__name__, "%s Failed to get correct content type" % (debug_pretext))
-        return True, language, "" #standard output
+        return True, language, ""  # standard output
 
     log(__name__, "%s Saving subtitles to '%s'" % (debug_pretext, local_tmp_file))
     local_file_handle = open(local_tmp_file, "wb")
@@ -99,7 +98,7 @@ def download_subtitles(subtitles_list, pos, zip_subs, tmp_sub_dir, sub_folder, s
 
 
 def get_subtitles_list(searchstring, languageshort, languagelong, subtitles_list):
-    url = '%s/search.php?name=%s&sort=downloads+desc' % (main_url, urllib.parse.quote_plus(searchstring))
+    url = '%s/search.php?name=%s&sort=downloads+desc' % (main_url, quote_plus(searchstring))
     try:
         log(__name__, "%s Getting url: %s" % (debug_pretext, url))
         content = get_url(url, referer=main_url)

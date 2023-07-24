@@ -2,14 +2,14 @@ from __future__ import print_function
 import os
 
 import six
-from six.moves import urllib
+from urllib.request import Request, urlopen
 
 
 def load(subpath):
     if subpath.startswith('http'):
-        req = urllib.request.Request(subpath)
+        req = Request(subpath)
         try:
-            response = urllib.request.urlopen(req)
+            response = urlopen(req)
             text = response.read()
         except Exception:
             raise
@@ -26,16 +26,12 @@ def load(subpath):
 
 
 def toString(text):
-    if isinstance(text, str):
-        if isinstance(text, six.text_type):
-            return six.ensure_str(text)
     return text
 
 
 def toUnicode(text):
-    if isinstance(text, str):
-        if isinstance(text, str):
-            return six.ensure_text(text, errors='ignore')
+    if isinstance(text, bytes):
+        text = text.decode("UTF-8", errors='ignore')
     return text
 
 
@@ -74,7 +70,7 @@ def decode(text, encodings, current_encoding=None, decode_from_start=False):
                 continue
 
 
-class HeadRequest(urllib.request.Request):
+class HeadRequest(Request):
     def get_method(self):
         return "HEAD"
 

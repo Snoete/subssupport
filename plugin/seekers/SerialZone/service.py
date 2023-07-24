@@ -1,11 +1,12 @@
 # -*- coding: UTF-8 -*-
 from __future__ import absolute_import
-import urllib
+from urllib.parse import urlencode
+from urllib.request import urlopen
 import re
 from ..utilities import log, hashFile, languageTranslate
 
 
-def search_subtitles(file_original_path, title, tvshow, year, season, episode, set_temp, rar, lang1, lang2, lang3, stack): #standard input
+def search_subtitles(file_original_path, title, tvshow, year, season, episode, set_temp, rar, lang1, lang2, lang3, stack):  # standard input
 	log(__name__, "Starting search by TV Show")
 	if (tvshow == None or tvshow == ''):
 		log(__name__, "No TVShow name, stop")
@@ -86,14 +87,14 @@ def search_subtitles(file_original_path, title, tvshow, year, season, episode, s
 	return result_subtitles, "", ""
 
 
-def download_subtitles(subtitles_list, pos, zip_subs, tmp_sub_dir, sub_folder, session_id): #standard input
+def download_subtitles(subtitles_list, pos, zip_subs, tmp_sub_dir, sub_folder, session_id):  # standard input
 
 	selected_subtitles = subtitles_list[pos]
 
 	log(__name__, selected_subtitles)
 
 	log(__name__, 'Downloading subtitle zip')
-	res = urllib.urlopen(selected_subtitles['link'])
+	res = urlopen(selected_subtitles['link'])
 	subtitles_data = res.read()
 
 	log(__name__, 'Saving to file %s' % zip_subs)
@@ -135,8 +136,8 @@ class SerialZoneClient(object):
 		self.server_url = "http://www.serialzone.cz"
 
 	def search_show(self, title):
-		enc_title = urllib.urlencode({"co": title, "kde": "serialy"})
-		res = urllib.urlopen(self.server_url + "/hledani/?" + enc_title)
+		enc_title = urlencode({"co": title, "kde": "serialy"})
+		res = urlopen(self.server_url + "/hledani/?" + enc_title)
 		shows = []
 		try:
 			res_body = re.search("<div class=\"column4 wd2 fl-left\">(.+?)<div class=\"cl12px fl-left\"></div>", res.read(), re.IGNORECASE | re.DOTALL).group(1)
@@ -153,7 +154,7 @@ class SerialZoneClient(object):
 		return shows
 
 	def list_show_subtitles(self, show_url, show_series):
-		res = urllib.urlopen(show_url + "titulky/" + show_series + "-rada/")
+		res = urlopen(show_url + "titulky/" + show_series + "-rada/")
 		if not res.getcode() == 200:
 			return []
 		subtitles = []

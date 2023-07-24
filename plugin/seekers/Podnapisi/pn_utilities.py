@@ -5,15 +5,11 @@ from __future__ import print_function
 import os
 import zlib
 from xml.dom import minidom
+from urllib.request import urlopen
+from xmlrpc.client import Server
 
 from ..seeker import SubtitlesDownloadError, SubtitlesErrors
 from ..utilities import log, getFileSize, hashFile
-import six
-from six.moves import urllib
-
-
-from six.moves import xmlrpc_client
-
 
 try:
     # Python 2.6 +
@@ -111,7 +107,7 @@ class PNServer:
         self.connected = False
 
     def Login(self):
-        self.podserver = xmlrpc_client.Server('http://ssp.podnapisi.net:8000')
+        self.podserver = Server('http://ssp.podnapisi.net:8000')
         init = self.podserver.initiate(USER_AGENT)
         hash = md5()
         hash.update(settings_provider.getSetting("PNpass"))
@@ -205,7 +201,7 @@ class PNServer:
             return ""
 
     def fetch(self, url):
-        socket = urllib.request.urlopen(url)
+        socket = urlopen(url)
         result = socket.read()
         socket.close()
         xmldoc = minidom.parseString(result)
@@ -215,5 +211,5 @@ class PNServer:
         return cmp(b["language_name"], a["language_name"]) or cmp(a["sync"], b["sync"])
 
     def mergesubtitles(self):
-        if(len(self.subtitles_list) > 0):
+        if (len(self.subtitles_list) > 0):
             self.subtitles_list = sorted(self.subtitles_list, self.compare_columns)

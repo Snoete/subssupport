@@ -9,7 +9,7 @@ import time
 import six
 
 from .seeker import BaseSeeker
-from .utilities import languageTranslate, toString
+from .utilities import languageTranslate
 
 from . import _
 
@@ -63,7 +63,7 @@ class XBMCSubtitlesAdapter(BaseSeeker):
             lang1 = languageTranslate(langs[0], 2, 0)
             lang2 = languageTranslate(langs[1], 2, 0)
             lang3 = languageTranslate(langs[2], 2, 0)
-        self.log.info('using langs %s %s %s' % (toString(lang1), toString(lang2), toString(lang3)))
+        self.log.info('using langs %s %s %s' % (lang1, lang2, lang3))
         self.module.settings_provider = self.settings_provider
         # Standard output -
         # subtitles list
@@ -77,12 +77,12 @@ class XBMCSubtitlesAdapter(BaseSeeker):
         subtitles_list = subtitles['list']
         session_id = subtitles['session_id']
         pos = subtitles_list.index(selected_subtitle)
-        zip_subs = os.path.join(toString(self.tmp_path), toString(selected_subtitle['filename']))
-        tmp_sub_dir = toString(self.tmp_path)
+        zip_subs = os.path.join(self.tmp_path, selected_subtitle['filename'])
+        tmp_sub_dir = self.tmp_path
         if path is not None:
-            sub_folder = toString(path)
+            sub_folder = path
         else:
-            sub_folder = toString(self.tmp_path)
+            sub_folder = self.tmp_path
         self.module.settings_provider = self.settings_provider
         # Standard output -
         # True if the file is packed as zip: addon will automatically unpack it.
@@ -231,12 +231,12 @@ class OpenSubtitlesSeeker(XBMCSubtitlesAdapter):
     default_settings = {}
 
     def _search(self, title, filepath, lang, season, episode, tvshow, year):
-        from six.moves import xmlrpc_client
+        from xmlrpc.client import Client
         tries = 4
         for i in range(tries):
             try:
                 return XBMCSubtitlesAdapter._search(self, title, filepath, lang, season, episode, tvshow, year)
-            except xmlrpc_client.Client.ProtocolError as e:
+            except Client.ProtocolError as e:
                 self.log.error(e.errcode)
                 if i == (tries - 1):
                     raise
