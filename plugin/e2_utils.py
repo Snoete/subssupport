@@ -20,8 +20,11 @@ from __future__ import print_function
 from . import _
 import os
 import shutil
-from twisted.web.client import downloadPage
+import requests
+from twisted.internet.threads import deferToThread
 import xml.etree.cElementTree
+
+from enigma import addFont, ePicLoad, eEnv, getDesktop
 
 from Components.Label import Label
 from Components.ActionMap import ActionMap
@@ -39,8 +42,18 @@ from Screens.VirtualKeyBoard import VirtualKeyBoard
 from Tools.Directories import fileExists, SCOPE_SKIN, SCOPE_CURRENT_SKIN, resolveFilename
 from Tools.LoadPixmap import LoadPixmap
 
-from enigma import addFont, ePicLoad, eEnv, getDesktop
 from .utils import toString
+
+
+def downloadPage(url, filename, params=None, headers=None, cookies=None):
+    return getPage(url, params, headers, cookies)
+
+
+def getPage(url, params=None, headers=None, cookies=None, timeout=None):
+    headers = headers or {}
+    timeout = timeout or 30.05
+    headers["user-agent"] = "Mozilla/5.0 Gecko/20100101 Firefox/100.0"
+    return deferToThread(requests.get, url, params=params, headers=headers, cookies=cookies, timeout=timeout)
 
 
 def getDesktopSize():
@@ -234,7 +247,7 @@ class Captcha(object):
 
     def downloadCaptchaSuccess(self, txt=""):
         print("[Captcha] downloaded successfully:")
-        self.openCaptchaDialog(self.dest)
+        self.openCaptchaDialog(self.destPath)
 
     def downloadCaptchaError(self, err):
         print("[Captcha] download error:", err)

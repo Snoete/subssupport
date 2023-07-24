@@ -8,6 +8,8 @@ import os
 import sys
 import time
 import unittest
+from configparser import RawConfigParser
+
 test = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(os.path.join(test, '..', 'plugin'))
 
@@ -337,10 +339,6 @@ class TestItasa(TestXBMCSubtitleProviderWithCredentials, unittest.TestCase):
 
 
 from seekers.xbmc_subtitles import TitloviSeeker
-
-from configparser import RawConfigParser
-
-from six.moves import range
 
 
 class TestTitlovi(TestXBMCSubtitleProvider, unittest.TestCase):

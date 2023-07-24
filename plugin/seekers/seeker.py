@@ -24,9 +24,6 @@ import traceback
 from .utilities import langToCountry, languageTranslate, SimpleLogger, toString
 
 
-import six
-
-
 class SubtitlesErrors:
     UNKNOWN_ERROR = 0
     INVALID_CREDENTIALS_ERROR = 1

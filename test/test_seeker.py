@@ -12,7 +12,6 @@ sys.path.append(os.path.join(test, '..', 'plugin'))
 
 from seekers.seeker import BaseSeeker, SubtitlesSearchError, SubtitlesDownloadError, SubtitlesErrors
 from seek import SubsSeeker
-from six.moves import range
 
 
 def remove_files_in_dir(dirpath):

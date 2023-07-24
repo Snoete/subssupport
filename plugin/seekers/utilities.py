@@ -1,17 +1,10 @@
 # -*- coding: utf-8 -*-
-from __future__ import print_function
 import re
 import struct
 import unicodedata
-
-try:
-    from hashlib import md5
-except:
-    from md5 import new as md5
+from hashlib import md5
 from urllib.request import Request, urlopen
 import os
-
-import six
 
 SUPRESS_LOG = True
 
@@ -19,7 +12,7 @@ SUPRESS_LOG = True
 def log(module, msg):
     if SUPRESS_LOG:
         return
-    print(module, msg)
+    print("%s %s" % (module, msg))
 
 
 LANGUAGES = (

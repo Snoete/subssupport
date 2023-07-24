@@ -23,9 +23,9 @@ import json
 import os
 import re
 from urllib.parse import quote, unquote
+from xml.etree.ElementTree import parse as parse_xml
 
 from twisted.internet.defer import Deferred
-from twisted.web import client
 
 from Components.ActionMap import ActionMap, HelpableActionMap
 from Components.ConfigList import ConfigListScreen
@@ -60,7 +60,7 @@ from Components.FileList import FileList
 #from .compat import FileList
 from .e2_utils import messageCB, E2SettingsProvider, MyLanguageSelection, unrar, \
     ConfigFinalText, Captcha, DelayMessageBox, MyConfigList, getFps, fps_float, \
-    getFonts, BaseMenuScreen, isFullHD, isHD, getDesktopSize
+    getFonts, BaseMenuScreen, isFullHD, isHD, getDesktopSize, getPage
 from enigma import eTimer, eConsoleAppContainer, ePythonMessagePump, eSize, ePoint, RT_HALIGN_LEFT, \
     RT_HALIGN_RIGHT, RT_VALIGN_CENTER, eListboxPythonMultiContent, \
     getDesktop, eServiceCenter, eServiceReference, \
@@ -76,15 +76,6 @@ from skin import parseColor, parsePosition, parseFont
 from .utils import toString, SimpleLogger, toUnicode
 
 from . import _, __author__, __version__, __email__
-
-import six
-from six.moves import range
-
-try:
-    from xml.etree.cElementTree import parse as parse_xml
-except ImportError:
-    from xml.etree.ElementTree import parse as parse_xml
-
 
 try:
     from Screens.AudioSelection import QuickSubtitlesConfigMenu
@@ -104,7 +95,7 @@ def debug(text, *args):
             text = text % args[0]
         else:
             text = text % (args)
-        print("[SubsSupport]", toString('utf-8'))
+        print("[SubsSupport] %s" % text)
 
 
 # set the name of plugin in which this library belongs
@@ -1113,6 +1104,7 @@ class SubsSupport(SubsSupportEmbedded):
 
 
 ############ Methods triggered by videoEvents when SubsSupport is subclass of Screen ################
+
 
     def __serviceStarted(self):
         print('[SubsSupport] Service Started')
@@ -3141,7 +3133,8 @@ class Suggestions(object):
 class OpenSubtitlesSuggestions(Suggestions):
     def _getSuggestions(self, queryString):
         query = "http://www.opensubtitles.org/libs/suggest.php?format=json2&SubLanguageID=null&MovieName=" + quote(queryString)
-        return client.getPage(six.ensure_binary(query), timeout=6)
+        query = query.encode("UTF-8", "strict")
+        return getPage(query, timeout=6)
 
     def _processResult(self, data):
         return json.loads(data)['result']

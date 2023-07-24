@@ -1,7 +1,6 @@
 from __future__ import print_function
 import os
 
-import six
 from urllib.request import Request, urlopen
 
 

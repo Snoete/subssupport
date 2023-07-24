@@ -1,6 +1,4 @@
 # -*- coding: utf-8 -*-
-
-from __future__ import absolute_import
 __author__ = "mx3L"
 __email__ = "mx3Lmail@gmail.com"
 __copyright__ = 'Copyright (c) 2014 mx3L'
