@@ -40,8 +40,8 @@ def search_subtitles(file_original_path, title, tvshow, year, season, episode, s
     item['temp'] = False
     item['rar'] = False
     item['year'] = year
-    item['season'] = str(season)
-    item['episode'] = str(episode)
+    item['season'] = season
+    item['episode'] = episode
     item['tvshow'] = tvshow
     item['title'] = title
     item['file_original_path'] = file_original_path
@@ -51,7 +51,7 @@ def search_subtitles(file_original_path, title, tvshow, year, season, episode, s
         log(__scriptid__, "VideoPlayer.OriginalTitle not found")
         item['title'] = normalizeString(os.path.basename(item['file_original_path']))
 
-    if item['episode'] and item['episode'].lower().find("s") > -1:  # Check if season is "Special"
+    if item['episode'].lower().find("s") > -1:  # Check if season is "Special"
         item['season'] = "0"  #
         item['episode'] = item['episode'][-1:]
 

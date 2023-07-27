@@ -5,17 +5,32 @@ from __future__ import print_function
 import difflib
 import os
 import re
-from urllib.request import FancyURLopener
+import requests
+import warnings
+from urllib.request import FancyURLopener, urlopen
 from urllib.parse import quote_plus, urlencode
 from html import unescape
 from .SubsceneUtilities import geturl, get_language_info
 from ..utilities import log
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+warnings.simplefilter('ignore',InsecureRequestWarning)
 
+HDR = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:77.0) Gecko/20100101 Firefox/77.0',
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+      'Accept-Language': 'fr,fr-FR;q=0.8,en-US;q=0.5,en;q=0.3',
+      'Upgrade-Insecure-Requests': '1',
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Referer': 'https://subscene.com/subtitles/',
+      'Connection': 'keep-alive',
+      'Accept-Encoding': 'gzip, deflate'}
+LINKFILE3 = '/tmp/link3'
+LINKFILE2 = '/tmp/link2'
+LINKFILE = '/tmp/link'
+LINKFILE0 = '/tmp/link0'
 main_url = "https://subscene.com"
 debug_pretext = ""
-
-
-# Seasons as strings for searching
+ses = requests.Session()
+# Seasons as strings for searching  </div>
 # Seasons as strings for searching
 seasons = ["Specials", "First", "Second", "Third", "Fourth", "Fifth", "Sixth", "Seventh", "Eighth", "Ninth", "Tenth"]
 seasons = seasons + ["Eleventh", "Twelfth", "Thirteenth", "Fourteenth", "Fifteenth", "Sixteenth", "Seventeenth",
@@ -24,7 +39,7 @@ seasons = seasons + ["Twenty-first", "Twenty-second", "Twenty-third", "Twenty-fo
                      "Twenty-seventh", "Twenty-eighth", "Twenty-ninth"]
 
 movie_season_pattern = ("<a href=\"(?P<link>/subtitles/[^\"]*)\">(?P<title>[^<]+)\((?P<year>\d{4})\)</a>\s+"
-                        "</div>\s+<div class=\"subtle count\">\s+(?P<numsubtitles>\d+)")
+                        "<div class=\"subtle count\">\s+(?P<numsubtitles>\d+</div>\s+)")
 
 # Don't remove it we need it here
 subscene_languages = {
@@ -36,9 +51,10 @@ subscene_languages = {
 }
 
 
-def getSearchTitle(title, year=None):  # new Add
+def getSearchTitle(title, year=True):  # new Add
     url = 'https://subscene.com/subtitles/searchbytitle?query=%s&l=' % quote_plus(title)
-    data = geturl(url)
+    #data = geturl(url)
+    data = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
     blocks = data.split('class="title"')
     blocks.pop(0)
     list1 = []
@@ -51,13 +67,17 @@ def getSearchTitle(title, year=None):  # new Add
             print("hrefxxx", href)
             print("yearxx", year)
             href = 'https://subscene.com' + href
-            if year and year == '' and "/subtitles/" in href:
-                return href
-            if not year and "/subtitles/" in href:
-                return href
-            if year and str(year) in name and "/subtitles/" in href:
-                print("href", href)
-                return href
+            if year and year == '':
+              if "/subtitles/" in href:
+                  return href
+            if not year:
+              if "/subtitles/" in href:
+                  return href
+            if year and str(year) in name:
+                if "/subtitles/" in href:
+                   print("href", href)
+                   return href
+
         except:
             break
     return 'https://subscene.com/subtitles/' + quote_plus(title)
@@ -85,6 +105,7 @@ def find_tv_show_season(content, tvshow, season):
     for matches in re.finditer(movie_season_pattern, content, re.IGNORECASE | re.DOTALL):
         found_title = matches.group('title')
         found_title = unescape(found_title)
+        print("found_title2 %s" % found_title)
 
         log(__name__, "Found tv show season on search page: %s" % found_title)
         s = found_title + ' ' + matches.group('year')
@@ -122,18 +143,25 @@ def getallsubs(content, allowed_languages, filename="", search_string=""):
 
     subtitles = []
     allmatches = re.finditer(subtitle_pattern, content, re.IGNORECASE | re.DOTALL)
-    print('allmatches', allmatches)
+    print('allmatches %s' % allmatches)
     i = 0
     for matches in re.finditer(subtitle_pattern, content, re.IGNORECASE | re.DOTALL):
+        print(matches)
+        #print((tuple(matches.groups())))
         numfiles = 1
         if matches.group('numfiles') != "":
             numfiles = int(matches.group('numfiles'))
+            print((tuple(matches.group('numfiles'))))
         languagefound = matches.group('language')
         language_info = get_language_info(languagefound)
+        print(('language_info', language_info))
         if language_info and language_info['name'] in allowed_languages:
             link = main_url + matches.group('link')
+            print(('link', link))
             subtitle_name = matches.group('filename').strip()
-            hearing_imp = (matches.group('hiclass') == "a41")
+            print(('subtitle_name', subtitle_name))
+            hearing_imp = (matches.group('hiclass') == "a40")
+            print(('hearing_imp', hearing_imp))
             rating = '0'
             comment = ''
             if matches.group('quality') == "bad-icon":
@@ -144,7 +172,7 @@ def getallsubs(content, allowed_languages, filename="", search_string=""):
             commentmatch = re.search(comment_pattern, matches.group('rest'), re.IGNORECASE | re.DOTALL)
             if commentmatch != None:
                 comment = re.sub("[\r\n\t]+", " ", unescape(commentmatch.group('comment').strip()))
-
+                print(('comment', comment))
             sync = False
             if filename != "" and filename.lower() == subtitle_name.lower():
                 sync = True
@@ -179,12 +207,19 @@ def search_movie(title, year, languages, filename):
     try:
         title = title.strip()
         search_string = prepare_search_string(title)
-        url = getSearchTitle(search_string, year)
-        print("true url", url)
-        content = geturl(url)
+        #url = getSearchTitle(search_string, year)#.replace("%2B","-")
+        url = main_url + "/subtitles/" + quote_plus(search_string, year).replace("%2B", "-").replace("%253A", "")
+        with open(LINKFILE2, "a") as f:
+            f.write(url)
+        print(("true url", url))
+        content = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
+        #print("true url", url)
+        #content = geturl(url)
+        print(("title", title))
         #print("content", content)
         if content != '':
             _list = getallsubs(content, languages, filename)
+            print(("_list", _list))
             return _list
         else:
             return []
@@ -199,15 +234,18 @@ def search_tvshow(tvshow, season, episode, languages, filename):
 
     log(__name__, "Search tvshow = %s" % search_string)
     url = main_url + "/subtitles/title?q=" + quote_plus(search_string) + '&r=true'
-    content, response_url = geturl(url)
-
+    with open(LINKFILE, "a") as f:
+        f.write(content)
+    content, response_url = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
+    with open(LINKFILE, "a") as f:
+        f.write(url)
     if content is not None:
         log(__name__, "Multiple tv show seasons found, searching for the right one ...")
         tv_show_seasonurl = find_tv_show_season(content, tvshow, seasons[int(season)])
         if tv_show_seasonurl is not None:
             log(__name__, "Tv show season found in list, getting subs ...")
             url = main_url + tv_show_seasonurl
-            content, response_url = geturl(url)
+            content, response_url = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
             if content is not None:
                 search_string = "s%#02de%#02d" % (int(season), int(episode))
                 return getallsubs(content, languages, filename, search_string)
@@ -216,7 +254,7 @@ def search_tvshow(tvshow, season, episode, languages, filename):
 def search_manual(searchstr, languages, filename):
     search_string = prepare_search_string(searchstr)
     url = main_url + "/subtitles/release?q=" + search_string + '&r=true'
-    content, response_url = geturl(url)
+    content, response_url = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
 
     if content is not None:
         return getallsubs(content, languages, filename)
@@ -246,7 +284,8 @@ def search_subtitles(file_original_path, title, tvshow, year, season, episode, s
 def download_subtitles(subtitles_list, pos, zip_subs, tmp_sub_dir, sub_folder, session_id):  # standard input
     url = subtitles_list[pos]["link"]
     language = subtitles_list[pos]["language_name"]
-    content = geturl(url)
+    content = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
+    #content = geturl(url) .replace("com","icu")
     downloadlink_pattern = "...<a href=\"(.+?)\" rel=\"nofollow\" onclick=\"DownloadSubtitle"
     match = re.compile(downloadlink_pattern).findall(content)
     if match:
@@ -257,32 +296,33 @@ def download_subtitles(subtitles_list, pos, zip_subs, tmp_sub_dir, sub_folder, s
         subtitleid = 0
         typeid = "zip"
         filmid = 0
+        #postparams = { '__EVENTTARGET': 's$lc$bcr$downloadLink', '__EVENTARGUMENT': '' , '__VIEWSTATE': viewstate, '__PREVIOUSPAGE': previouspage, 'subtitleId': subtitleid, 'typeId': typeid, 'filmId': filmid}
         postparams = urlencode({'__EVENTTARGET': 's$lc$bcr$downloadLink', '__EVENTARGUMENT': '', '__VIEWSTATE': viewstate, '__PREVIOUSPAGE': previouspage, 'subtitleId': subtitleid, 'typeId': typeid, 'filmId': filmid})
-
-        class MyOpener(FancyURLopener):
-            version = 'User-Agent=Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.2.3) Gecko/20100401 Firefox/3.6.3 ( .NET CLR 3.5.30729)'
-        my_urlopener = MyOpener()
-        my_urlopener.addheader('Referer', url)
+        #class MyOpener(urllib.FancyURLopener):
+            #version = 'User-Agent=Mozilla/5.0 (Windows NT 6.1; rv:109.0) Gecko/20100101 Firefox/115.0'
+        #my_urlopener = MyOpener()
+        #my_urlopener.addheader('Referer', url)
         log(__name__, "%s Fetching subtitles using url '%s' with referer header '%s' and post parameters '%s'" % (debug_pretext, downloadlink, url, postparams))
-        response = my_urlopener.open(downloadlink, postparams)
+        #response = my_urlopener.open(downloadlink, postparams)
+        response = ses.get(downloadlink, data=postparams, headers=HDR, verify=False, allow_redirects=True)
         local_tmp_file = zip_subs
         try:
             log(__name__, "%s Saving subtitles to '%s'" % (debug_pretext, local_tmp_file))
             if not os.path.exists(tmp_sub_dir):
                 os.makedirs(tmp_sub_dir)
-            local_file_handle = open(local_tmp_file, "w" + "b")
-            local_file_handle.write(response.read())
+            local_file_handle = open(local_tmp_file, 'wb')
+            local_file_handle.write(response.content)
             local_file_handle.close()
             # Check archive type (rar/zip/else) through the file header (rar=Rar!, zip=PK)
             myfile = open(local_tmp_file, "rb")
             myfile.seek(0)
-            if (myfile.read(1) == 'R'):
+            if (myfile.read(1).decode('utf-8') == 'R'):
                 typeid = "rar"
                 packed = True
                 log(__name__, "Discovered RAR Archive")
             else:
                 myfile.seek(0)
-                if (myfile.read(1) == 'P'):
+                if (myfile.read(1).decode('utf-8') == 'P'):
                     typeid = "zip"
                     packed = True
                     log(__name__, "Discovered ZIP Archive")
