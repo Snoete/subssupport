@@ -13,7 +13,7 @@ from html import unescape
 from .SubsceneUtilities import geturl, get_language_info
 from ..utilities import log
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
-warnings.simplefilter('ignore',InsecureRequestWarning)
+warnings.simplefilter('ignore', InsecureRequestWarning)
 
 HDR = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:77.0) Gecko/20100101 Firefox/77.0',
       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -23,10 +23,6 @@ HDR = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:77.0) Gecko/2
       'Referer': 'https://subscene.com/subtitles/',
       'Connection': 'keep-alive',
       'Accept-Encoding': 'gzip, deflate'}
-LINKFILE3 = '/tmp/link3'
-LINKFILE2 = '/tmp/link2'
-LINKFILE = '/tmp/link'
-LINKFILE0 = '/tmp/link0'
 main_url = "https://subscene.com"
 debug_pretext = ""
 ses = requests.Session()
@@ -209,8 +205,6 @@ def search_movie(title, year, languages, filename):
         search_string = prepare_search_string(title)
         #url = getSearchTitle(search_string, year)#.replace("%2B","-")
         url = main_url + "/subtitles/" + quote_plus(search_string, year).replace("%2B", "-").replace("%253A", "")
-        with open(LINKFILE2, "a") as f:
-            f.write(url)
         print(("true url", url))
         content = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
         #print("true url", url)
@@ -234,11 +228,7 @@ def search_tvshow(tvshow, season, episode, languages, filename):
 
     log(__name__, "Search tvshow = %s" % search_string)
     url = main_url + "/subtitles/title?q=" + quote_plus(search_string) + '&r=true'
-    with open(LINKFILE, "a") as f:
-        f.write(content)
-    content, response_url = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
-    with open(LINKFILE, "a") as f:
-        f.write(url)
+    content = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
     if content is not None:
         log(__name__, "Multiple tv show seasons found, searching for the right one ...")
         tv_show_seasonurl = find_tv_show_season(content, tvshow, seasons[int(season)])
@@ -254,7 +244,7 @@ def search_tvshow(tvshow, season, episode, languages, filename):
 def search_manual(searchstr, languages, filename):
     search_string = prepare_search_string(searchstr)
     url = main_url + "/subtitles/release?q=" + search_string + '&r=true'
-    content, response_url = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
+    content = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
 
     if content is not None:
         return getallsubs(content, languages, filename)

@@ -408,7 +408,7 @@ class SubsControllerDVB(Screen, HelpableScreen):
 
     def delTimers(self):
         self.hideTimer.stop()
-        self.hideTimer.callback.remove(self.hideTimerCallback)
+        self.hideTimer.callback.remove(self.hideStatus)
         self.eventTimer.stop()
         self.eventTimer.callback.remove(self.updateEventStatus)
         self.subtitlesTimer.stop()
