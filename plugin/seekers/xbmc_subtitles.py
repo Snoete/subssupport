@@ -114,8 +114,8 @@ class XBMCSubtitlesAdapter(BaseSeeker):
 
 try:
     from .Titulky import titulkycom
-except ImportError as e:
-    titulkycom = e
+except ImportError as ie:
+    titulkycom = ie
 
 
 class TitulkyComSeeker(XBMCSubtitlesAdapter):
@@ -131,8 +131,8 @@ class TitulkyComSeeker(XBMCSubtitlesAdapter):
 
 try:
     from .Edna import edna
-except ImportError as e:
-    edna = e
+except ImportError as ie:
+    edna = ie
 
 
 class EdnaSeeker(XBMCSubtitlesAdapter):
@@ -149,8 +149,8 @@ class EdnaSeeker(XBMCSubtitlesAdapter):
 
 try:
     from .SerialZone import serialzone
-except ImportError as e:
-    serialzone = e
+except ImportError as ie:
+    serialzone = ie
 
 
 class SerialZoneSeeker(XBMCSubtitlesAdapter):
@@ -167,8 +167,8 @@ class SerialZoneSeeker(XBMCSubtitlesAdapter):
 
 try:
     from .OpenSubtitles import opensubtitles
-except ImportError as e:
-    opensubtitles = e
+except ImportError as ie:
+    opensubtitles = ie
 
 
 class OpenSubtitlesSeeker(XBMCSubtitlesAdapter):
@@ -234,12 +234,12 @@ class OpenSubtitlesSeeker(XBMCSubtitlesAdapter):
     default_settings = {}
 
     def _search(self, title, filepath, lang, season, episode, tvshow, year):
-        from xmlrpc.client import Client
+        from xmlrpc.client import ProtocolError
         tries = 4
         for i in range(tries):
             try:
                 return XBMCSubtitlesAdapter._search(self, title, filepath, lang, season, episode, tvshow, year)
-            except Client.ProtocolError as e:
+            except ProtocolError as e:
                 self.log.error(e.errcode)
                 if i == (tries - 1):
                     raise
@@ -249,8 +249,8 @@ class OpenSubtitlesSeeker(XBMCSubtitlesAdapter):
 
 try:
     from .Podnapisi import podnapisi
-except ImportError as e:
-    podnapisi = e
+except ImportError as ie:
+    podnapisi = ie
 
 
 class PodnapisiSeeker(XBMCSubtitlesAdapter):
@@ -320,8 +320,8 @@ class PodnapisiSeeker(XBMCSubtitlesAdapter):
 
 try:
     from .Subscene import subscene
-except ImportError as e:
-    subscene = e
+except ImportError as ie:
+    subscene = ie
 
 
 class SubsceneSeeker(XBMCSubtitlesAdapter):
@@ -389,8 +389,8 @@ class SubsceneSeeker(XBMCSubtitlesAdapter):
 
 try:
     from .SubtitlesGR import subtitlesgr
-except ImportError as e:
-    subtitlesgr = e
+except ImportError as ie:
+    subtitlesgr = ie
 
 
 class SubtitlesGRSeeker(XBMCSubtitlesAdapter):
@@ -407,8 +407,8 @@ class SubtitlesGRSeeker(XBMCSubtitlesAdapter):
 
 try:
     from .Itasa import itasa
-except ImportError as e:
-    itasa = e
+except ImportError as ie:
+    itasa = ie
 
 
 class ItasaSeeker(XBMCSubtitlesAdapter):
@@ -426,8 +426,8 @@ class ItasaSeeker(XBMCSubtitlesAdapter):
 
 try:
     from .Titlovi import titlovi
-except ImportError as e:
-    titlovi = e
+except ImportError as ie:
+    titlovi = ie
 
 
 class TitloviSeeker(XBMCSubtitlesAdapter):

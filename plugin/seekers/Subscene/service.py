@@ -46,6 +46,8 @@ subscene_languages = {
     'Farsi/Persian': 'Persian'
 }
 
+LINKFILE = '/tmp/SubScene1'
+
 
 def getSearchTitle(title, year=True):  # new Add
     url = 'https://subscene.com/subtitles/searchbytitle?query=%s&l=' % quote_plus(title)
@@ -224,18 +226,20 @@ def search_movie(title, year, languages, filename):
 def search_tvshow(tvshow, season, episode, languages, filename):
     tvshow = tvshow.strip()
     search_string = prepare_search_string(tvshow)
-    search_string += " - " + seasons[int(season)] + " Season"
-
+    search_string += "-" + seasons[int(season)] + "-Season"
     log(__name__, "Search tvshow = %s" % search_string)
-    url = main_url + "/subtitles/title?q=" + quote_plus(search_string) + '&r=true'
+    url = main_url + "/subtitles/" + quote_plus(search_string).replace("%2B", "-").replace("%253A", "")
     content = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
     if content is not None:
+        with open(LINKFILE, "w") as f:
+            f.write(content)
         log(__name__, "Multiple tv show seasons found, searching for the right one ...")
         tv_show_seasonurl = find_tv_show_season(content, tvshow, seasons[int(season)])
         if tv_show_seasonurl is not None:
             log(__name__, "Tv show season found in list, getting subs ...")
             url = main_url + tv_show_seasonurl
-            content, response_url = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
+            print("SubScene url=%s" % url)
+            content = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
             if content is not None:
                 search_string = "s%#02de%#02d" % (int(season), int(episode))
                 return getallsubs(content, languages, filename, search_string)
@@ -268,7 +272,7 @@ def search_subtitles(file_original_path, title, tvshow, year, season, episode, s
           sublist = search_manual(title, [lang1, lang2, lang3], file_original_path)
         except:
             print("error")
-    return sublist, "", ""
+    return sublist or [], "", ""
 
 
 def download_subtitles(subtitles_list, pos, zip_subs, tmp_sub_dir, sub_folder, session_id):  # standard input

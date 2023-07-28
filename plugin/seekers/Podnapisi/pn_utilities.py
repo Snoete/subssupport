@@ -11,14 +11,8 @@ from xmlrpc.client import Server
 from ..seeker import SubtitlesDownloadError, SubtitlesErrors
 from ..utilities import log, getFileSize, hashFile
 
-try:
-    # Python 2.6 +
-    from hashlib import md5 as md5
-    from hashlib import sha256
-except ImportError:
-    # Python 2.5 and earlier
-    from md5 import md5
-    from .sha256 import sha256
+from hashlib import md5 as md5
+from hashlib import sha256
 
 __scriptid__ = 'podnapisi'
 __scriptname__ = 'XBMC Subtitles'
@@ -66,7 +60,7 @@ def calculateSublightHash(filename):
 
     if filesize < DATA_SIZE:
         return "000000000000"
-    fileToHash = open(filename, 'r')
+    fileToHash = open(filename, 'rb')
 
     sum = 0
     hash = ""
@@ -83,7 +77,7 @@ def calculateSublightHash(filename):
     sum = sum + (begining & 0xff) + ((begining & 0xff00) >> 8) + ((begining & 0xff0000) >> 16) + ((begining & 0xff000000) >> 24)
     hash = hash + invert(dec2hex(begining, 8))
 
-    fileToHash.seek(filesize / 2, 0)
+    fileToHash.seek(filesize // 2, 0)
     buffer = fileToHash.read(DATA_SIZE)
     middle = zlib.adler32(buffer) & 0xffffffff
     sum = sum + (middle & 0xff) + ((middle & 0xff00) >> 8) + ((middle & 0xff0000) >> 16) + ((middle & 0xff000000) >> 24)
