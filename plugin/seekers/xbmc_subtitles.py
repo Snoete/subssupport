@@ -3,6 +3,7 @@ Created on Feb 10, 2014
 
 @author: marko
 '''
+from __future__ import absolute_import
 import os
 import time
 

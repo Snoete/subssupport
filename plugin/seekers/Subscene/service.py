@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
 from __future__ import print_function
 import difflib
 import os
@@ -12,7 +13,7 @@ from html import unescape
 from .SubsceneUtilities import geturl, get_language_info
 from ..utilities import log
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
-warnings.simplefilter('ignore', InsecureRequestWarning)
+warnings.simplefilter('ignore',InsecureRequestWarning)
 
 HDR = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:77.0) Gecko/20100101 Firefox/77.0',
       'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
@@ -208,17 +209,17 @@ def search_movie(title, year, languages, filename):
         search_string = prepare_search_string(title)
         #url = getSearchTitle(search_string, year)#.replace("%2B","-")
         url = main_url + "/subtitles/" + quote_plus(search_string, year).replace("%2B", "-").replace("%253A", "")
-#        with open(LINKFILE2, "a") as f:
-#            f.write(url)
-        print("search_movie url %s" % url)
+        with open(LINKFILE2, "a") as f:
+            f.write(url)
+        print(("true url", url))
         content = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
         #print("true url", url)
         #content = geturl(url)
-        print("title %s" % title)
+        print(("title", title))
         #print("content", content)
         if content != '':
             _list = getallsubs(content, languages, filename)
-            print("_list %s" % _list)
+            print(("_list", _list))
             return _list
         else:
             return []
@@ -233,19 +234,18 @@ def search_tvshow(tvshow, season, episode, languages, filename):
 
     log(__name__, "Search tvshow = %s" % search_string)
     url = main_url + "/subtitles/title?q=" + quote_plus(search_string) + '&r=true'
-#    with open(LINKFILE, "a") as f:
-#        f.write(content)
-    print("search_tvshow url %s" % url)
-    content = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
-#    with open(LINKFILE, "a") as f:
-#        f.write(url)
+    with open(LINKFILE, "a") as f:
+        f.write(content)
+    content, response_url = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
+    with open(LINKFILE, "a") as f:
+        f.write(url)
     if content is not None:
         log(__name__, "Multiple tv show seasons found, searching for the right one ...")
         tv_show_seasonurl = find_tv_show_season(content, tvshow, seasons[int(season)])
         if tv_show_seasonurl is not None:
             log(__name__, "Tv show season found in list, getting subs ...")
             url = main_url + tv_show_seasonurl
-            content = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
+            content, response_url = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
             if content is not None:
                 search_string = "s%#02de%#02d" % (int(season), int(episode))
                 return getallsubs(content, languages, filename, search_string)
@@ -254,8 +254,7 @@ def search_tvshow(tvshow, season, episode, languages, filename):
 def search_manual(searchstr, languages, filename):
     search_string = prepare_search_string(searchstr)
     url = main_url + "/subtitles/release?q=" + search_string + '&r=true'
-    print("search_manual url %s" % url)
-    content = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
+    content, response_url = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
 
     if content is not None:
         return getallsubs(content, languages, filename)
@@ -285,7 +284,6 @@ def search_subtitles(file_original_path, title, tvshow, year, season, episode, s
 def download_subtitles(subtitles_list, pos, zip_subs, tmp_sub_dir, sub_folder, session_id):  # standard input
     url = subtitles_list[pos]["link"]
     language = subtitles_list[pos]["language_name"]
-    print("download_subtitles url %s" % url)
     content = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
     #content = geturl(url) .replace("com","icu")
     downloadlink_pattern = "...<a href=\"(.+?)\" rel=\"nofollow\" onclick=\"DownloadSubtitle"

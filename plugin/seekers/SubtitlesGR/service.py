@@ -1,4 +1,5 @@
 # -*- coding: UTF-8 -*-
+from __future__ import absolute_import
 import os
 import re
 from urllib.request import urlopen, Request

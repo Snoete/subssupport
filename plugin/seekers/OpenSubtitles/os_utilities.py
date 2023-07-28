@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import absolute_import
 from xmlrpc.client import Server
 
 from ..utilities import languageTranslate, log
