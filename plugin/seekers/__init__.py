@@ -3,7 +3,6 @@ Created on Feb 10, 2014
 
 @author: marko
 '''
-from __future__ import absolute_import
 try:
     from . import _
 except ImportError:

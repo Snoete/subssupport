@@ -1,5 +1,4 @@
 # -*- coding: UTF-8 -*-
-from __future__ import absolute_import
 from urllib.parse import urlencode
 from urllib.request import urlopen
 import re

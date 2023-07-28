@@ -16,7 +16,6 @@
 #
 #################################################################################
 
-from __future__ import absolute_import
 from __future__ import print_function
 from datetime import datetime
 from importlib import reload
@@ -1105,7 +1104,6 @@ class SubsSupport(SubsSupportEmbedded):
 
 
 ############ Methods triggered by videoEvents when SubsSupport is subclass of Screen ################
-
 
     def __serviceStarted(self):
         print('[SubsSupport] Service Started')
@@ -4025,13 +4023,13 @@ class SubsSearch(Screen):
         self.onClose.append(self.closeSeekers)
 
     def eventinfo(self):
-        tmdb_file=resolveFilename(SCOPE_PLUGINS, "Extensions/tmdb")
+        tmdb_file = resolveFilename(SCOPE_PLUGINS, "Extensions/tmdb")
         if os.path.exists(tmdb_file):
                from Plugins.Extensions.tmdb import tmdb
                reload(tmdb)
                s = self.session.nav.getCurrentService()
                info = s.info()
-               event = info.getEvent(0) # 0 = now, 1 = next
+               event = info.getEvent(0)  # 0 = now, 1 = next
                name = event and event.getEventName() or ''
                self.session.open(tmdb.tmdbScreen, name, 2)
         else:

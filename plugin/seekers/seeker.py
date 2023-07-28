@@ -15,13 +15,13 @@
 #    GNU General Public License for more details.
 #
 #################################################################################
-from __future__ import absolute_import
 import socket
 import sys
 import time
 import traceback
 
-from .utilities import langToCountry, languageTranslate, SimpleLogger, toString
+from .utilities import languageTranslate, toString
+from ..utils import SimpleLogger
 
 
 class SubtitlesErrors:

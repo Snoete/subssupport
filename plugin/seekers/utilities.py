@@ -373,52 +373,5 @@ def detectSearchParams(title):
     return title, year, tvshow, season, episode
 
 
-class SimpleLogger(object):
-
-    LOG_FORMAT = "[{0}]{1}"
-    LOG_NONE, LOG_ERROR, LOG_INFO, LOG_DEBUG = list(range(4))
-
-    def __init__(self, prefix_name, log_level=LOG_INFO):
-        self.prefix_name = prefix_name
-        self.log_level = log_level
-
-    def set_log_level(self, level):
-        self.log_level = level
-
-    def error(self, text, *args):
-        if self.log_level >= self.LOG_ERROR:
-            text = self._eval_message(text, args)
-            text = "[error] {0}".format(toString(text))
-            out = self._format_output(text)
-            self._out_fnc(out)
-
-    def info(self, text, *args):
-        if self.log_level >= self.LOG_INFO:
-            text = self._eval_message(text, args)
-            text = "[info] {0}".format(toString(text))
-            out = self._format_output(text)
-            self._out_fnc(out)
-
-    def debug(self, text, *args):
-        if self.log_level == self.LOG_DEBUG:
-            text = self._eval_message(text, args)
-            text = "[debug] {0}".format(toString(text))
-            out = self._format_output(text)
-            self._out_fnc(out)
-
-    def _eval_message(self, text, *args):
-        if len(args) == 1 and isinstance(args[0], tuple):
-            text = text % toString(args[0])
-        elif len(args) >= 1:
-            text = text % tuple([toString(a) for a in args])
-        return text
-
-    def _format_output(self, text):
-        return self.LOG_FORMAT.format(self.prefix_name, text)
-
-    def _out_fnc(self, text):
-        print(text)
-
-
 def toString(text):
     return text

@@ -1,6 +1,4 @@
-from __future__ import absolute_import
 import re
-
 from .baseparser import BaseParser, ParseError, HEX_COLORS
 
 

@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
 from urllib.request import urlopen
 from .ti_utilities import OSDBServer
 from ..utilities import languageTranslate, log

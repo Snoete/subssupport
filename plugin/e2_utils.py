@@ -15,7 +15,6 @@
 #    GNU General Public License for more details.
 #
 #################################################################################
-from __future__ import absolute_import
 from __future__ import print_function
 from . import _
 import os

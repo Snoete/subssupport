@@ -16,14 +16,14 @@
 #
 #################################################################################
 
-from __future__ import absolute_import, division
+from __future__ import division
 import os
 import traceback
 
 from urllib.error import URLError, HTTPError
 from .parsers.baseparser import ParseError, NoSubtitlesParseError
-from .seekers.utilities import getFileSize, SimpleLogger
-from .utils import load, decode, toString
+from .seekers.utilities import getFileSize
+from .utils import load, decode, toString, SimpleLogger
 
 
 SUBTITLES_FILE_MAX_SIZE = 400 * 1024  # 400KB

@@ -16,7 +16,6 @@
 #
 #################################################################################
 
-from __future__ import absolute_import
 import os
 import shutil
 import socket
@@ -25,24 +24,13 @@ import time
 import traceback
 import zipfile
 
-try:
-    from .seekers import SubtitlesDownloadError, SubtitlesSearchError, \
+from .utils import SimpleLogger, toString
+from .seekers.seeker import BaseSeeker
+from .seekers.utilities import languageTranslate, langToCountry, getCompressedFileType, detectSearchParams
+from .seekers import SubtitlesDownloadError, SubtitlesSearchError, \
         SubtitlesErrors, TitulkyComSeeker, EdnaSeeker, SerialZoneSeeker, \
         OpenSubtitlesSeeker, PodnapisiSeeker, SubsceneSeeker, SubtitlesGRSeeker, \
         ItasaSeeker, TitloviSeeker
-    from .seekers.seeker import BaseSeeker
-    from .seekers.utilities import languageTranslate, langToCountry, \
-        getCompressedFileType, detectSearchParams
-    from .utils import SimpleLogger, toString
-except (ValueError, ImportError):
-    from seekers import SubtitlesDownloadError, SubtitlesSearchError, \
-        SubtitlesErrors, TitulkyComSeeker, EdnaSeeker, SerialZoneSeeker, \
-        OpenSubtitlesSeeker, PodnapisiSeeker, SubsceneSeeker, SubtitlesGRSeeker, \
-        ItasaSeeker, TitloviSeeker
-    from seekers.seeker import BaseSeeker
-    from seekers.utilities import languageTranslate, langToCountry, \
-        getCompressedFileType, detectSearchParams
-    from utils import SimpleLogger, toString
 
 
 SUBTITLES_SEEKERS = []
