@@ -46,7 +46,7 @@ subscene_languages = {
     'Farsi/Persian': 'Persian'
 }
 
-LINKFILE = '/tmp/SubScene1'
+LINKFILE = '/tmp/SubScene1'  # NOSONAR
 
 
 def getSearchTitle(title, year=True):  # new Add

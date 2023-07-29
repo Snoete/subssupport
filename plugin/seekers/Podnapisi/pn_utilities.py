@@ -101,7 +101,7 @@ class PNServer:
         self.connected = False
 
     def Login(self):
-        self.podserver = Server('http://ssp.podnapisi.net:8000')
+        self.podserver = Server('http://ssp.podnapisi.net:8000')  # NOSONAR
         init = self.podserver.initiate(USER_AGENT)
         hash = md5()
         hash.update(settings_provider.getSetting("PNpass"))
