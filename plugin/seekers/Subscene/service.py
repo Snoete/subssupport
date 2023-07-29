@@ -100,33 +100,41 @@ def find_tv_show_season(content, tvshow, season):
     possible_matches = []
     all_tvshows = []
 
-    for matches in re.finditer(movie_season_pattern, content, re.IGNORECASE | re.DOTALL):
-        found_title = matches.group('title')
-        found_title = unescape(found_title)
-        print("found_title2 %s" % found_title)
+    subtitle_pattern = ("<a href=\"(?P<link>/subtitles/[^\"]+)\">\s+"
+                        "<span class=\"[^\"]+ (?P<quality>\w+-icon)\">\s+(?P<language>[^\r\n\t]+)\s+</span>\s+"
+                        "<span>\s+(?P<filename>[^\r\n\t]+)\s+</span>\s+"
+                        "</a>\s+</td>\s+"
+                        "<td class=\"[^\"]+\">\s+(?P<numfiles>[^\r\n\t]*)\s+</td>\s+"
+                        "<td class=\"(?P<hiclass>[^\"]+)\">"
+                        "(?P<rest>.*?)</tr>")
+
+    for matches in re.finditer(subtitle_pattern, content, re.IGNORECASE | re.DOTALL):
+        found_title = matches.group("filename")
+        found_title = unescape(found_title).strip()
+#        print("found_title2 %s" % found_title)
 
         log(__name__, "Found tv show season on search page: %s" % found_title)
-        s = found_title + ' ' + matches.group('year')
-        s = difflib.SequenceMatcher(None, s.lower(), tvshow.lower())
-        all_tvshows.append(matches.groups() + (s.ratio() * int(matches.group('numsubtitles')),))
+        #s = found_title + ' ' + matches.group('year')
+        #s = difflib.SequenceMatcher(None, s.lower(), tvshow.lower())
+        #all_tvshows.append(matches.groups() + (s.ratio() * int(matches.group('numsubtitles')),))
         if found_title.lower().find(tvshow.lower() + " ") > -1:
             if found_title.lower().find(season.lower()) > -1:
                 log(__name__, "Matching tv show season found on search page: %s" % found_title)
                 possible_matches.append(matches.groups())
 
-    if len(possible_matches) > 0:
-        possible_matches = sorted(possible_matches, key=lambda x: -int(x[3]))
-        url_found = possible_matches[0][0]
-        log(__name__, "Selecting matching tv show with most subtitles: %s (%s)" % (
-            possible_matches[0][1], possible_matches[0][3]))
-    else:
-        if len(all_tvshows) > 0:
-            all_tvshows = sorted(all_tvshows, key=lambda x: -int(x[4]))
-            url_found = all_tvshows[0][0]
-            log(__name__, "Selecting tv show with highest fuzzy string score: %s (score: %s subtitles: %s)" % (
-                all_tvshows[0][1], all_tvshows[0][4], all_tvshows[0][3]))
+        if len(possible_matches) > 0:
+            possible_matches = sorted(possible_matches, key=lambda x: -int(x[3]))
+            url_found = possible_matches[0][0]
+            log(__name__, "Selecting matching tv show with most subtitles: %s (%s)" % (
+                possible_matches[0][1], possible_matches[0][3]))
+#        else:
+#            if len(all_tvshows) > 0:
+#                all_tvshows = sorted(all_tvshows, key=lambda x: -int(x[4]))
+#                url_found = all_tvshows[0][0]
+#                log(__name__, "Selecting tv show with highest fuzzy string score: %s (score: %s subtitles: %s)" % (
+#                    all_tvshows[0][1], all_tvshows[0][4], all_tvshows[0][3]))
 
-    return url_found
+    return possible_matches
 
 
 def getallsubs(content, allowed_languages, filename="", search_string=""):
@@ -140,11 +148,11 @@ def getallsubs(content, allowed_languages, filename="", search_string=""):
     comment_pattern = "<td class=\"a6\">\s+<div>\s+(?P<comment>[^\"]+)&nbsp;\s*</div>"
 
     subtitles = []
-    allmatches = re.finditer(subtitle_pattern, content, re.IGNORECASE | re.DOTALL)
-    print('allmatches %s' % allmatches)
+    #allmatches = re.finditer(subtitle_pattern, content, re.IGNORECASE | re.DOTALL)
+    #print('allmatches %s' % allmatches)
     i = 0
     for matches in re.finditer(subtitle_pattern, content, re.IGNORECASE | re.DOTALL):
-        print(matches)
+        #print(matches)
         #print((tuple(matches.groups())))
         numfiles = 1
         if matches.group('numfiles') != "":
@@ -152,14 +160,14 @@ def getallsubs(content, allowed_languages, filename="", search_string=""):
             print((tuple(matches.group('numfiles'))))
         languagefound = matches.group('language')
         language_info = get_language_info(languagefound)
-        print(('language_info', language_info))
+        #print(('language_info', language_info))
         if language_info and language_info['name'] in allowed_languages:
             link = main_url + matches.group('link')
-            print(('link', link))
+            #print(('link', link))
             subtitle_name = matches.group('filename').strip()
-            print(('subtitle_name', subtitle_name))
+            #print(('subtitle_name', subtitle_name))
             hearing_imp = (matches.group('hiclass') == "a40")
-            print(('hearing_imp', hearing_imp))
+            #print(('hearing_imp', hearing_imp))
             rating = '0'
             comment = ''
             if matches.group('quality') == "bad-icon":
@@ -168,9 +176,9 @@ def getallsubs(content, allowed_languages, filename="", search_string=""):
                 rating = '5'
 
             commentmatch = re.search(comment_pattern, matches.group('rest'), re.IGNORECASE | re.DOTALL)
-            if commentmatch != None:
+            if commentmatch is not None:
                 comment = re.sub("[\r\n\t]+", " ", unescape(commentmatch.group('comment').strip()))
-                print(('comment', comment))
+                #print(('comment', comment))
             sync = False
             if filename != "" and filename.lower() == subtitle_name.lower():
                 sync = True
@@ -231,18 +239,20 @@ def search_tvshow(tvshow, season, episode, languages, filename):
     url = main_url + "/subtitles/" + quote_plus(search_string).replace("%2B", "-").replace("%253A", "")
     content = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
     if content is not None:
-        with open(LINKFILE, "w") as f:
-            f.write(content)
+#        with open(LINKFILE, "w") as f:
+#            f.write(content)
         log(__name__, "Multiple tv show seasons found, searching for the right one ...")
-        tv_show_seasonurl = find_tv_show_season(content, tvshow, seasons[int(season)])
-        if tv_show_seasonurl is not None:
-            log(__name__, "Tv show season found in list, getting subs ...")
-            url = main_url + tv_show_seasonurl
-            print("SubScene url=%s" % url)
-            content = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
-            if content is not None:
-                search_string = "s%#02de%#02d" % (int(season), int(episode))
-                return getallsubs(content, languages, filename, search_string)
+        search_string = "s%#02de%#02d" % (int(season), int(episode))
+        return getallsubs(content, languages, filename, search_string)
+#        matches = find_tv_show_season(content, tvshow, seasons[int(season)])
+#        if matches:
+#            log(__name__, "Tv show season found in list, getting subs ...")
+#            url = main_url + tv_show_seasonurl
+#            print("SubScene url=%s" % url)
+#            content = ses.get(url, headers=HDR, verify=False, allow_redirects=True).text
+#            if content is not None:
+#                search_string = "s%#02de%#02d" % (int(season), int(episode))
+#                return getallsubs(content, languages, filename, search_string)
 
 
 def search_manual(searchstr, languages, filename):
