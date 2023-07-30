@@ -32,6 +32,7 @@ from Components.ConfigList import ConfigList
 from Components.Console import Console
 from Components.Language import language
 from Components.Pixmap import Pixmap
+from Components.Sources.Boolean import Boolean
 from Components.Sources.List import List
 from Components.Sources.StaticText import StaticText
 from Components.ConfigList import ConfigListScreen
@@ -546,6 +547,11 @@ class BaseMenuScreen(Screen, ConfigListScreen):
         self["key_red"] = StaticText(_("Cancel"))
         self["key_blue"] = StaticText(_("Reset Defaults"))
         self["key_yellow"] = StaticText("")
+        self["VKeyIcon"] = Boolean(False)
+        self["HelpWindow"] = Pixmap()
+        self["HelpWindow"].hide()
+        self["footnote"] = Label()
+        self["description"] = Label()
         self.setTitle(title)
         self.onLayoutFinish.append(self.buildMenu)
 
