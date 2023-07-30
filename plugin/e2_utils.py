@@ -33,6 +33,7 @@ from Components.Console import Console
 from Components.Language import language
 from Components.Pixmap import Pixmap
 from Components.Sources.List import List
+from Components.Sources.StaticText import StaticText
 from Components.ConfigList import ConfigListScreen
 from Components.config import ConfigText, ConfigSubsection, ConfigDirectory, \
     ConfigYesNo, ConfigPassword, getConfigListEntry, configfile
@@ -509,7 +510,7 @@ def getFonts():
 
 class BaseMenuScreen(Screen, ConfigListScreen):
     if isFullHD():
-        skin = """
+        _skin = """
                 <screen position="center,center" size="915,652" >
                     <widget name="key_red" position="15,7" zPosition="1" size="210,67" font="Regular;30" halign="center" valign="center" backgroundColor="#9f1313" shadowOffset="-2,-2" shadowColor="black" />
                     <widget name="key_green" position="240,7" zPosition="1" size="210,67" font="Regular;30" halign="center" valign="center" backgroundColor="#1f771f" shadowOffset="-2,-2" shadowColor="black" />
@@ -519,7 +520,7 @@ class BaseMenuScreen(Screen, ConfigListScreen):
                     <widget name="config" position="0,112" size="915,532" font="Regular;26" itemHeight="36" scrollbarMode="showOnDemand" />
                 </screen>"""
     else:
-        skin = """
+        _skin = """
                 <screen position="center,center" size="610,435" >
                     <widget name="key_red" position="10,5" zPosition="1" size="140,45" font="Regular;20" halign="center" valign="center" backgroundColor="#9f1313" shadowOffset="-2,-2" shadowColor="black" />
                     <widget name="key_green" position="160,5" zPosition="1" size="140,45" font="Regular;20" halign="center" valign="center" backgroundColor="#1f771f" shadowOffset="-2,-2" shadowColor="black" />
@@ -532,6 +533,7 @@ class BaseMenuScreen(Screen, ConfigListScreen):
     def __init__(self, session, title):
         Screen.__init__(self, session)
         ConfigListScreen.__init__(self, [], session=session)
+        self.skinName = "Setup"
         self["actions"] = ActionMap(["SetupActions", "ColorActions"],
             {
                 "cancel": self.keyCancel,
@@ -540,16 +542,12 @@ class BaseMenuScreen(Screen, ConfigListScreen):
                 "blue": self.resetDefaults,
             }, -2)
 
-        self["key_green"] = Label(_("Save"))
-        self["key_red"] = Label(_("Cancel"))
-        self["key_blue"] = Label(_("Reset Defaults"))
-        self["key_yellow"] = Label("")
-        self.title = title
-        self.onLayoutFinish.append(self.setWindowTitle)
+        self["key_green"] = StaticText(_("Save"))
+        self["key_red"] = StaticText(_("Cancel"))
+        self["key_blue"] = StaticText(_("Reset Defaults"))
+        self["key_yellow"] = StaticText("")
+        self.setTitle(title)
         self.onLayoutFinish.append(self.buildMenu)
-
-    def setWindowTitle(self):
-        self.setTitle(self.title)
 
     def buildMenu(self):
         pass
